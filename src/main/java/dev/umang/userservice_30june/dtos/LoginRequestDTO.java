@@ -1,20 +1,9 @@
 package dev.umang.userservice_30june.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
-
-public class SignupRequestDTO {
-    private String name;
+public class LoginRequestDTO {
     private String email;
-    private String password; //this will be encrypted password
+    private String password;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;
