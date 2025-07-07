@@ -1,11 +1,14 @@
 package dev.umang.userservice_30june.services;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.umang.userservice_30june.events.SendEmail;
 import dev.umang.userservice_30june.models.Token;
 import dev.umang.userservice_30june.models.User;
 import dev.umang.userservice_30june.repositories.TokenRepository;
 import dev.umang.userservice_30june.repositories.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +20,19 @@ public class UserService {
     private UserRepository userRepository;
     private TokenRepository tokenRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private ObjectMapper objectMapper;
 
     public UserService(UserRepository userRepository,
                         TokenRepository tokenRepository,
-                        BCryptPasswordEncoder bCryptPasswordEncoder) {
+                        BCryptPasswordEncoder bCryptPasswordEncoder,
+                       KafkaTemplate<String, String> kafkaTemplate,
+                       ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public User signup(String name,
@@ -43,6 +52,19 @@ public class UserService {
         // Save the user to the database (this part is not implemented here)
 
         userRepository.save(user);
+
+        // Publish an event to Kafka
+        //email - from, to, body, subject
+        SendEmail sendEmail = new SendEmail();
+        sendEmail.setBody("Welcome to our service, " + name + "! Your account has been created successfully.");
+        sendEmail.setSubject("Welcome to Our Service");
+        sendEmail.setTo(email);
+        sendEmail.setFrom("admin@scaler.com");
+
+
+        kafkaTemplate.send("send_email",
+                objectMapper.writeValueAsString(sendEmail));
+
         return user;
     }
 

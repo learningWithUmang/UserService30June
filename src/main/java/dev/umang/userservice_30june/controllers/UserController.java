@@ -14,6 +14,7 @@ import java.util.random.RandomGenerator;
 @RequestMapping("/users")
 public class UserController {
     private UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -41,7 +42,12 @@ public class UserController {
             signupResponseDTO.setMessage("User signed up successfully");
             signupResponseDTO.setEmail(user.getEmail());
             signupResponseDTO.setStatus(ResponseStatus.SUCCESS);
+
+            //sign up is done
+            //publish an event into kafka queue
+
             return ResponseEntity.ok(signupResponseDTO);
+
         }catch (Exception e) {
             signupResponseDTO.setMessage("Error signing up user: " + e.getMessage());
             signupResponseDTO.setEmail(email);
